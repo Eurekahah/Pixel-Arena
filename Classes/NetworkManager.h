@@ -20,6 +20,8 @@ public:
 
     bool init();
 
+    void destroyInstance();
+
     void sendMessage(const std::string& message);
 
     virtual void onOpen(cocos2d::network::WebSocket* ws) override;

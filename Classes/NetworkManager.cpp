@@ -1,20 +1,26 @@
 
 #include"NetworkManager.h"
 
+// 定义默认地址
+const std::string DEFAULT_SERVER_ADDRESS = "ws://localhost:8888";
+
 NetworkManager* NetworkManager::_instance = nullptr;
 
 NetworkManager::NetworkManager() : _webSocket(nullptr) {
 }
 
 NetworkManager::~NetworkManager() {
-    CC_SAFE_DELETE(_webSocket);
+    if (_webSocket) {
+        _webSocket->close();
+        CC_SAFE_DELETE(_webSocket);
+    }
 }
 
 
 NetworkManager* NetworkManager::getInstance() {
     if (_instance == nullptr) {
         _instance = NetworkManager::create();
-        if (_instance) {
+        if (_instance && _instance->init()) {
             _instance->retain(); // 保持单例不被自动释放
         }
     }
@@ -25,7 +31,7 @@ NetworkManager* NetworkManager::getInstance() {
 bool NetworkManager::init() {
     _webSocket = new cocos2d::network::WebSocket();
     // 替换为您的服务器地址
-    if (!_webSocket->init(*this, "ws://localhost:8888")) {
+    if (!_webSocket->init(*this, DEFAULT_SERVER_ADDRESS)) {
         delete _webSocket;
         _webSocket = nullptr;
         return false;
@@ -61,4 +67,12 @@ void NetworkManager::onClose(cocos2d::network::WebSocket* ws) {
 void NetworkManager::onError(cocos2d::network::WebSocket* ws, const cocos2d::network::WebSocket::ErrorCode& error) {
     cocos2d::log("WebSocket error occurred");
 }
+
+void NetworkManager::destroyInstance() {
+    if (_instance) {
+        _instance->release(); // 减少引用计数
+        _instance = nullptr;
+    }
+}
+
 
